@@ -1,0 +1,14 @@
+{
+  "description": "Personal Xray node for Excalibase: VLESS + WebSocket behind Excalibase TLS edge (port 443, edge TLS to be verified in Studio).",
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "index.js",
+  "name": "excalibase-xray",
+  "private": true,
+  "scripts": {
+    "postinstall": "node scripts/download-xray.js",
+    "start": "node index.js"
+  },
+  "version": "1.0.0"
+}

@@ -1,0 +1,31 @@
+# FLClash (Android) 本地配置文件模板
+# 部署成功后，把下面 <真实域名>、<UUID>、<WS_PATH> 换成真实值，
+# 再在 FLClash 里用「配置 → + → 文件」导入这个文件。
+# 更省事的是直接用订阅地址 https://<真实域名>/clash.yaml 导入。
+# 注意：UUID 和路径是节点凭证，只给自己用，不要公开分享。
+# 不要复用旧节点的凭证，部署时用全新值。
+mixed-port: 7890
+allow-lan: false
+mode: rule
+log-level: info
+proxies:
+  - name: "Cloady"
+    type: vless
+    server: <真实域名>
+    port: 443
+    uuid: <UUID>
+    network: ws
+    tls: true
+    servername: <真实域名>
+    ws-opts:
+      path: <WS_PATH>
+      headers:
+        Host: <真实域名>
+proxy-groups:
+  - name: "PROXY"
+    type: select
+    proxies:
+      - "Cloady"
+      - DIRECT
+rules:
+  - MATCH,PROXY
