@@ -1,0 +1,58 @@
+# CI route for Excalibase (prepared 2026-11-05, NOT run, no account created).
+# Why: Excalibase Studio deploys only an already-pushed registry image by
+# digest — no Dockerfile build or file upload (checked 2026-11-05 08:46-08:54).
+# How to use (user decision still required):
+#   1. Put the contents of workspace/excalibase-xray/ at the root of YOUR
+#      own GitHub repo (do not let Muse create a GitHub account for you).
+#      If you instead keep them in a subfolder, change `context:` below.
+#   2. Push to main (or run this workflow manually). It builds the Dockerfile
+#      and pushes a PUBLIC image to GHCR — the image holds no UUID/WS_PATH,
+#      those are set later as env vars in Excalibase Studio.
+#   3. Copy the image digest printed in the workflow log and paste it into
+#      Studio as the container image. Studio port: 3000 (or $PORT).
+#   4. Still blocked independently by Excalibase cluster capacity on
+#      2026-11-05 (nginx probe failed to schedule 3x); retry only after
+#      capacity recovers, and WebSocket upgrade support is still untested.
+#   5. No link/QR is issued until /health, /clash.yaml and a real FLClash
+#      dial test all pass.
+name: Build and push Xray image for Excalibase
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/excalibase-xray
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=
+      - uses: docker/build-push-action@v6
+        id: build
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      - name: Show digest for Excalibase Studio
+        run: |
+          echo "Image digest: ${{ steps.build.outputs.digest }}"
+          echo "Paste ghcr.io/${{ github.repository_owner }}/excalibase-xray@${{ steps.build.outputs.digest }} into Excalibase Studio."
